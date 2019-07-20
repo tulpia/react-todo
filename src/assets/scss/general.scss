@@ -1,0 +1,12 @@
+body {
+    font-family: $font;
+}
+
+.App {
+    width: 1400px;
+    margin: 0 auto;
+
+    @media (max-width: $laptop) {
+        width: 85%;
+    }
+}
