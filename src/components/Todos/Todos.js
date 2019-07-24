@@ -2,15 +2,31 @@ import React from 'react'
 import Todo from './Todo/Todo'
 import InputTodo from './InputTodo/InputTodo'
 
-const todos = [
-]
+// Firebase
+import base from '../../base'
 
 class Todos extends React.Component
 {
-    state = {
-        todos,
-        title: ''
+    constructor(props) {
+        super(props);
+    
+        this.state = {
+            todos: {},
+            title: ''
+        }
     }
+
+    // Firebase
+    // Une sorte de two-way binding de notre state à firebase
+    // Re-base permet de garder à jour le state par rapport a la bdd et vice-versa
+    // Sans écrire de code
+    componentDidMount () {
+        base.syncState('/', {
+            context: this,
+            state: 'todos'
+        })
+    }
+
 
     // ajouter un todo
     handleTodoAdd = event => {
@@ -18,11 +34,13 @@ class Todos extends React.Component
         event.preventDefault()
         
         // Puis, on copie le state pour plus tard le changer dans un setState
-        const todos = [ ...this.state.todos ]
+        const todos = { ...this.state.todos }
 
         // On créé une variable temporaire contenant la value de l'input pour ensuite l'ajouter dans le state en faisant un push
-        const todoAdded = { 'todo': this.state.title }
-        todos.push(todoAdded)
+        const todoAdded = { todo: this.state.title }
+
+        todos[`todo-${Date.now()}`] = todoAdded
+        
         this.setState({
             todos
         })
@@ -41,8 +59,8 @@ class Todos extends React.Component
 
     // Supprimer le todo au on click
     handleDelete = index => {
-        const todos = [ ...this.state.todos ]
-        todos.splice(index, 1)
+        const todos = { ...this.state.todos }
+        todos[index] = null
 
         this.setState({
             todos
@@ -52,13 +70,15 @@ class Todos extends React.Component
     render() {
         return (
             <section className="Todos">
-                {this.state.todos.map((value, index) => 
-                    <Todo
-                    key={index}
-                    index={index}
-                    todo={value.todo}
-                    handleDelete={(e) => this.handleDelete(index)} />
-                )}
+                {Object
+                    .keys(this.state.todos)
+                    .map((cle, index) =>
+                        <Todo
+                        key={cle}
+                        index={index}
+                        todo={this.state.todos[cle].todo}
+                        handleDelete={(e) => this.handleDelete(cle)} />
+                    )}
 
                 <InputTodo
                     title={this.state.title}
